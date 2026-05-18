@@ -375,7 +375,7 @@
         <button id="devForceEndBtn" class="dev-btn">💀 强制结束 (102)</button>
         <button id="devRestartGameBtn" class="dev-btn">🔄 重启游戏 (保留难度/范围)</button>
     </div>
-    <footer>⚡ 反馈含义: 对=位置数字全对 | 有=数字存在但位置错 | 无=不存在 | 辅助器: =数字存在 / >猜大 <猜小</footer>
+    <footer>⚡ 反馈含义: 对=位置数字全对 | 有=数字存在但位置错 | 无=不存在 | 辅助器: 等(数字存在) / 大(猜测偏大) / 小(猜测偏小)</footer>
 </div>
 
 <!-- 模态框 -->
@@ -425,7 +425,6 @@
     const abStatusSpan = document.getElementById('abStatusShow');
     const attemptSpan = document.getElementById('attemptCount');
     const dynamicFeedbackDiv = document.getElementById('dynamicFeedback');
-    const feedbackSymbolsSpan = document.getElementById('feedbackSymbols');
 
     let modalAutoCloseTimer = null;
 
@@ -540,12 +539,17 @@
         }
     }
 
+    // 辅助判断器：返回中文 "等/大/小" 字符串，长度4
     function getAssistantHint(guess) {
         if (!assistantEnabled) return "";
         let assist = [];
         for (let i = 0; i < 4; i++) {
-            if (currentPw.includes(guess[i])) assist.push("=");
-            else assist.push(guess[i] > currentPw[i] ? ">" : "<");
+            if (currentPw.includes(guess[i])) {
+                assist.push("等");
+            } else {
+                if (guess[i] > currentPw[i]) assist.push("大");
+                else assist.push("小");
+            }
         }
         return assist.join('');
     }
@@ -618,13 +622,14 @@
         const evalRes = evaluateGuess(guessArr);
         const rawFeedback = evalRes.rawFeedback;
         const isCorrect = evalRes.correct;
-        const assistStr = getAssistantHint(guessArr);
+        const assistStr = getAssistantHint(guessArr);   // 中文 "等大等小" 等
 
         // 记录到历史
         addHistoryRecord(guessArr, rawFeedback, assistStr);
         // 更新实时反馈（含数字）
         updateLiveFeedbackWithDigits(guessArr, rawFeedback);
 
+        // 系统日志显示辅助部分使用中文
         addSystemLog(`🔍 猜测 ${attemptCount}: ${guessArr.join('-')} → 反馈: ${rawFeedback.replace(/V/g,'对').replace(/Y/g,'有').replace(/X/g,'无')} ${assistantEnabled ? `(辅助:${assistStr})` : ''}`);
 
         if (isCorrect) {
@@ -656,7 +661,7 @@
     function toggleAssistant() {
         assistantEnabled = !assistantEnabled;
         updateUI();
-        addSystemLog(`🪄 辅助判断器已${assistantEnabled ? "开启" : "关闭"}`);
+        addSystemLog(`🪄 辅助判断器已${assistantEnabled ? "开启" : "关闭"} (输出:等/大/小)`);
     }
 
     // 主题切换（亮色化粉色/蓝色）
@@ -685,7 +690,7 @@
         updateUI();
         clearLiveFeedback();
         renderHistoryTable();
-        addSystemLog("🎮 游戏初始化完成 | 使用开发者按钮可获取密码等");
+        addSystemLog("🎮 游戏初始化完成 | 辅助器输出已改为[等/大/小]");
         // 事件绑定
         applyBtn.onclick = applySettings;
         submitBtn.onclick = handleGuess;
