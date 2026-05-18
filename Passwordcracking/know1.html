@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>密码破解者 · 凌柃版 · 智能破译游戏</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none; /* 避免移动端长按菜单，不影响输入框 */
+        }
+
+        body {
+            background: linear-gradient(145deg, #10141c 0%, #1a1f2c 100%);
+            font-family: 'Segoe UI', 'Poppins', 'Roboto', system-ui, -apple-system, 'SF Pro Text', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* 主游戏面板 */
+        .game-container {
+            max-width: 780px;
+            width: 100%;
+            background: rgba(22, 28, 40, 0.85);
+            backdrop-filter: blur(2px);
+            border-radius: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+            padding: 1.5rem 1.8rem 2.2rem;
+            border: 1px solid rgba(76, 130, 200, 0.3);
+            transition: all 0.2s;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            margin: 0 0 0.3rem 0;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e6e9ff, #9bb8ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+            text-align: center;
+        }
+
+        .sub {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #7c8db0;
+            border-bottom: 1px dashed #2a3346;
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+        }
+
+        /* 状态栏 */
+        .stats-panel {
+            background: #0c111c;
+            border-radius: 2rem;
+            padding: 0.8rem 1.2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            border: 1px solid #2c354a;
+        }
+
+        .stat-badge {
+            background: #1e293b;
+            padding: 5px 14px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            color: #cbd5ff;
+            box-shadow: inset 0 1px 2px #00000020, 0 1px 0 #3a465e;
+        }
+
+        .stat-badge span {
+            color: #ffd966;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        /* 设置区域 */
+        .settings-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: #0f1420cc;
+            padding: 12px 16px;
+            border-radius: 28px;
+            margin-bottom: 20px;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 110px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.7rem;
+            color: #9aa9c7;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        select, .input-group input {
+            width: 100%;
+            background: #010a1a;
+            border: 1px solid #334155;
+            padding: 8px 12px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 500;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        button {
+            background: #2d3b5a;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            color: #f0f3ff;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            font-size: 0.85rem;
+        }
+
+        button:active { transform: scale(0.96); }
+        .btn-primary { background: #2c5f8a; box-shadow: 0 2px 8px #1e3a5f; }
+        .btn-warn { background: #7a4c2c; }
+        .btn-code { background: #1e2a3a; border: 1px solid #4d688b; font-family: monospace; }
+
+        /* 猜数字区域 */
+        .guess-area {
+            background: #0b1020b3;
+            border-radius: 2rem;
+            padding: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .digit-inputs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .digit-inputs input {
+            width: 70px;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: #03070f;
+            border: 2px solid #3e5270;
+            border-radius: 20px;
+            padding: 10px 0;
+            color: #ffde9c;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* 开发者功能区 */
+        .dev-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 18px 0 16px;
+            justify-content: center;
+            border-top: 1px solid #293349;
+            padding-top: 16px;
+        }
+
+        .feedback-area {
+            background: #03070fe0;
+            border-radius: 28px;
+            padding: 12px 16px;
+            max-height: 280px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-line {
+            border-bottom: 1px solid #222c3e;
+            padding: 8px 4px;
+            color: #bfd1ff;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .log-result {
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .end-modal {
+            background: #121a28;
+            border-radius: 2rem;
+            max-width: 340px;
+            width: 80%;
+            padding: 28px 20px 30px;
+            text-align: center;
+            border: 1px solid #5d7bb3;
+            box-shadow: 0 20px 35px black;
+        }
+        .end-modal h3 {
+            font-size: 1.9rem;
+            margin: 0 0 8px;
+            color: #ffbc6e;
+        }
+        .end-modal p {
+            margin: 12px 0;
+            color: #e2e8ff;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .keep-check {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #a3b6e6;
+        }
+        footer {
+            font-size: 0.65rem;
+            text-align: center;
+            margin-top: 1rem;
+            color: #4e6188;
+        }
+        @media (max-width: 550px) {
+            .game-container { padding: 1rem; }
+            .digit-inputs input { width: 55px; font-size: 1.4rem; }
+            .stat-badge { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="gameApp">
+    <h1>🔐 密码破解者 v3.0</h1>
+    <div class="sub">凌柃 · 逻辑博弈 | 四位密文破译</div>
+
+    <!-- 状态栏 -->
+    <div class="stats-panel">
+        <div class="stat-badge">🎯 难度 <span id="difficultyShow">简单</span></div>
+        <div class="stat-badge">🌐 范围 0 — <span id="rangeShow">20</span></div>
+        <div class="stat-badge">🪄 辅助器 <span id="abStatusShow">关闭</span></div>
+        <div class="stat-badge">📊 尝试次数 <span id="attemptCount">0</span></div>
+    </div>
+
+    <!-- 设置区 -->
+    <div class="settings-area">
+        <div class="input-group">
+            <label>⚙️ 难度模式</label>
+            <select id="difficultySelect">
+                <option value="1">简单模式 (V/Y/X)</option>
+                <option value="2">困难模式 (位置权重)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>📏 最大值(3~99)</label>
+            <input type="number" id="maxRangeInput" min="3" max="99" value="20" step="1">
+        </div>
+        <button id="applySettingsBtn" class="btn-primary">✨ 应用并重置游戏</button>
+    </div>
+
+    <!-- 猜测核心 -->
+    <div class="guess-area">
+        <div class="digit-inputs">
+            <input type="number" id="d0" class="guess-digit" placeholder="0" min="0" max="99" step="1">
+            <input type="number" id="d1" class="guess-digit" placeholder="0" min="0" max="99" step="1">
+            <input type="number" id="d2" class="guess-digit" placeholder="0" min="0" max="99" step="1">
+            <input type="number" id="d3" class="guess-digit" placeholder="0" min="0" max="99" step="1">
+        </div>
+        <div class="action-buttons">
+            <button id="submitGuessBtn" class="btn-primary">🔍 破译密码</button>
+            <button id="clearInputBtn">🗑️ 清空输入</button>
+        </div>
+    </div>
+
+    <!-- 开发者代码面板 (按钮功能区) -->
+    <div class="dev-buttons">
+        <button class="btn-code" data-code="101">📖 101·显示密码</button>
+        <button class="btn-code" data-code="102">💀 102·强制结束</button>
+        <button class="btn-code" data-code="103">🔄 103·重开游戏(询问继承)</button>
+        <button class="btn-code" data-code="104">♻️ 104·清除记录并重开</button>
+        <button class="btn-code" data-code="105">✨ 105·启用辅助判断器</button>
+        <button class="btn-code" data-code="106">🚫 106·停用辅助判断器</button>
+        <button class="btn-code" data-code="107">ℹ️ 107·输出当前设置</button>
+        <button class="btn-code" data-code="108">⚡ 108·重开并继承上一局设置</button>
+    </div>
+
+    <!-- 反馈&历史区 -->
+    <div class="feedback-area" id="feedbackLog">
+        <div class="log-line">✨ 游戏已启动，设置难度与范围后点「应用」开始全新对局</div>
+        <div class="log-line">🔐 四位不同数字密码已生成，开始推理吧！</div>
+    </div>
+    <footer>💡 V=位置数字全对 | Y=数字对位置错 | X=不存在 | 困难模式按权重输出 V→Y→X</footer>
+</div>
+
+<!-- 模态框 -->
+<div id="endModal" class="modal-overlay">
+    <div class="end-modal">
+        <h3>🏆 破译成功</h3>
+        <p id="modalMessage">密码已破解！</p>
+        <div class="modal-buttons">
+            <button id="modalRestartBtn">🔄 新的一局</button>
+            <button id="modalCloseBtn">✖️ 关闭</button>
+        </div>
+        <div class="keep-check">
+            <input type="checkbox" id="keepModalCheckbox"> <label for="keepModalCheckbox">保持显示提示框（不自动关闭）</label>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- 核心状态 ----------
+    let currentPw = [0, 0, 0, 0];      // 四位密码
+    let difficulty = 1;                 // 1简单 2困难
+    let maxRange = 20;                 // 有效范围 0~maxRange
+    let assistantEnabled = false;      // 辅助判断器 (ab)
+    let attemptCount = 0;
+    let gameActive = true;             // 游戏是否进行中 (未结束/未强制结束)
+    let lastSettings = { diff: 1, range: 20 };   // 存储上一次有效设置（用于继承108）
+    let timeoutId = null;              // 自动关闭模态计时器
+
+    // DOM 元素
+    const difficultySelect = document.getElementById('difficultySelect');
+    const maxRangeInput = document.getElementById('maxRangeInput');
+    const applyBtn = document.getElementById('applySettingsBtn');
+    const submitBtn = document.getElementById('submitGuessBtn');
+    const clearBtn = document.getElementById('clearInputBtn');
+    const dInputs = [document.getElementById('d0'), document.getElementById('d1'), document.getElementById('d2'), document.getElementById('d3')];
+    const difficultyShowSpan = document.getElementById('difficultyShow');
+    const rangeShowSpan = document.getElementById('rangeShow');
+    const abStatusSpan = document.getElementById('abStatusShow');
+    const attemptSpan = document.getElementById('attemptCount');
+    const feedbackDiv = document.getElementById('feedbackLog');
+    const modal = document.getElementById('endModal');
+    const modalMessageP = document.getElementById('modalMessage');
+    const modalRestartBtn = document.getElementById('modalRestartBtn');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const keepModalCheck = document.getElementById('keepModalCheckbox');
+
+    // ---------- 辅助函数 ----------
+    function addLog(message, isResult = false) {
+        const logDiv = document.createElement('div');
+        logDiv.className = 'log-line';
+        if (isResult) logDiv.style.background = "#101624";
+        logDiv.innerHTML = message;
+        feedbackDiv.appendChild(logDiv);
+        logDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // 限制日志条数过多保留最近60条
+        while (feedbackDiv.children.length > 65) feedbackDiv.removeChild(feedbackDiv.firstChild);
+    }
+
+    function updateUI() {
+        difficultyShowSpan.innerText = difficulty === 1 ? "简单" : "困难";
+        rangeShowSpan.innerText = maxRange;
+        abStatusSpan.innerText = assistantEnabled ? "开启" : "关闭";
+        attemptSpan.innerText = attemptCount;
+    }
+
+    // 洗牌算法 + 生成密码 (从0~99洗牌后取前4个 <= maxRange 的数字)
+    function generatePasswordFromRange(rangeMax) {
+        let arr = [];
+        for (let i = 0; i < 100; i++) arr.push(i);
+        // Fisher-Yates 洗牌
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        let filtered = arr.filter(num => num <= rangeMax);
+        if (filtered.length < 4) {
+            // 极端情况补丁: 理论上range>=3就有足够多数字, 安全起见手动补
+            for (let i = 0; i <= rangeMax && filtered.length < 4; i++) if (!filtered.includes(i)) filtered.push(i);
+        }
+        return filtered.slice(0, 4);
+    }
+
+    // 全新游戏初始化 (保留当前difficulty, maxRange变量, 重置状态，生成密码)
+    function resetGame(resetSettingsFromGlobal = true) {
+        if (resetSettingsFromGlobal) {
+            // 已从当前全局变量同步
+        }
+        // 重新生成密码
+        const newPw = generatePasswordFromRange(maxRange);
+        currentPw = [...newPw];
+        attemptCount = 0;
+        gameActive = true;
+        // 不清除辅助状态，但保留用户设定，但界面更新即可
+        updateUI();
+        // 清空猜测输入
+        dInputs.forEach(inp => inp.value = '');
+        // 添加日志分割
+        addLog(`━━━━ 新游戏 ━━━━ 难度:${difficulty===1?'简单':'困难'}  | 范围:0~${maxRange} | 辅助器:${assistantEnabled?"开":"关"}`, false);
+        addLog(`🔐 四位密码已重置（互不相同，≤${maxRange}），祝你好运！`);
+        // 确保模态关闭
+        hideModal();
+    }
+
+    // 根据当前全局难度和范围完全重置 (应用设置后调用)
+    function applySettingsAndReset() {
+        let newDiff = parseInt(difficultySelect.value);
+        let newRange = parseInt(maxRangeInput.value);
+        if (isNaN(newRange)) newRange = 20;
+        if (newRange < 3) newRange = 3;
+        if (newRange > 99) newRange = 99;
+        difficulty = newDiff;
+        maxRange = newRange;
+        // 保存上一次设置（继承用）
+        lastSettings = { diff: difficulty, range: maxRange };
+        // 重置辅助判断器？为了符合原汁原味，应用设置不改变辅助器状态，但重置游戏辅助器可保持原样
+        resetGame(true);
+        updateUI();
+        // 可选: 若游戏结束标记清理
+    }
+
+    // 继承重开 (使用上一次的设置)
+    function inheritAndRestart() {
+        difficulty = lastSettings.diff;
+        maxRange = lastSettings.range;
+        difficultySelect.value = difficulty;
+        maxRangeInput.value = maxRange;
+        // 辅助器状态保持不变（根据需求继承不更改ab开关），但游戏重置
+        resetGame(true);
+        addLog(`⚙️ 继承模式: 难度=${difficulty===1?'简单':'困难'}, 范围0~${maxRange}`);
+        updateUI();
+    }
+
+    // 强制结束游戏 (不猜对，直接弹框结算)
+    function forceEndGame() {
+        if (!gameActive) {
+            addLog(`⚠️ 游戏已经处于结束状态，无需重复结束。`);
+            return;
+        }
+        gameActive = false;
+        const pwStr = currentPw.join('-');
+        addLog(`💀 强制结束游戏！ 正确密码为: ${pwStr}  共尝试 ${attemptCount} 次。`);
+        showGameOverModal(`强制结束！正确密码: ${pwStr}<br>尝试次数: ${attemptCount}`, false);
+    }
+
+    // 胜利结束（猜对时调用）
+    function winGame() {
+        if (!gameActive) return;
+        gameActive = false;
+        const pwStr = currentPw.join('-');
+        addLog(`🎉 破解成功！正确密码: ${pwStr} | 总尝试次数: ${attemptCount}`);
+        showGameOverModal(`🎉 恭喜破译！<br> 密码: ${pwStr}<br> 尝试次数: ${attemptCount}`, true);
+    }
+
+    // 模态显示，设置自动关闭计时器
+    function showGameOverModal(message, isWin = true) {
+        modalMessageP.innerHTML = message;
+        modal.classList.add('active');
+        if (timeoutId) clearTimeout(timeoutId);
+        if (!keepModalCheck.checked) {
+            timeoutId = setTimeout(() => {
+                if (modal.classList.contains('active')) {
+                    modal.classList.remove('active');
+                }
+            }, 3000);
+        } else {
+            if (timeoutId) clearTimeout(timeoutId);
+        }
+    }
+    function hideModal() {
+        if (timeoutId) clearTimeout(timeoutId);
+        modal.classList.remove('active');
+    }
+
+    // 核心判断: 根据输入返回结果字符串和是否正确
+    function evaluateGuess(guess) {
+        if (!gameActive) return { resultStr: "游戏已结束，请重开", correct: false };
+        let resStr = "";
+        let correctPosCount = 0;
+        if (difficulty === 1) {  // 简单模式 逐个输出 V/Y/X
+            let output = [];
+            for (let i = 0; i < 4; i++) {
+                let val = guess[i];
+                if (val === currentPw[i]) {
+                    output.push("V");
+                    correctPosCount++;
+                } else if (currentPw.includes(val)) {
+                    output.push("Y");
+                } else {
+                    output.push("X");
+                }
+            }
+            resStr = output.join('');
+            if (correctPosCount === 4) return { resultStr: resStr, correct: true };
+            return { resultStr: resStr, correct: false };
+        } 
+        else {  // 困难模式：先统计 ha2(完全正确) 和 ha1(数字存在位置错误)
+            let ha2 = 0, ha1 = 0;
+            let usedInPos = [false, false, false, false];
+            // 先标记完全正确
+            for (let i = 0; i < 4; i++) {
+                if (guess[i] === currentPw[i]) {
+                    ha2++;
+                    usedInPos[i] = true;
+                }
+            }
+            // 统计位置错误的匹配（每个密码数字只能被匹配一次）
+            let tempPwCopy = [...currentPw];
+            for (let i = 0; i < 4; i++) {
+                if (guess[i] === currentPw[i]) {
+                    // 已作为V处理，将密码对应标记移除
+                    tempPwCopy[i] = null;
+                }
+            }
+            for (let i = 0; i < 4; i++) {
+                if (guess[i] !== currentPw[i]) {
+                    let idx = tempPwCopy.indexOf(guess[i]);
+                    if (idx !== -1 && idx !== i) {
+                        ha1++;
+                        tempPwCopy[idx] = null;
+                    }
+                }
+            }
+            if (ha2 === 4) return { resultStr: "VVVV", correct: true };
+            // 构建结果字串: ha2个V, ha1个Y, 剩下X
+            let resultParts = [];
+            for (let i = 0; i < ha2; i++) resultParts.push("V");
+            for (let i = 0; i < ha1; i++) resultParts.push("Y");
+            while (resultParts.length < 4) resultParts.push("X");
+            resStr = resultParts.join('');
+            // 额外处理特殊情况: 原C++无V时候简单输出样式比如YXXX等，但上述逻辑满足
+            return { resultStr: resStr, correct: (ha2 === 4) };
+        }
+    }
+
+    // 辅助判断器生成 (按原逻辑)
+    function getAssistantString(guess) {
+        let assist = [];
+        for (let i = 0; i < 4; i++) {
+            const val = guess[i];
+            if (currentPw.includes(val)) {
+                assist.push("=");
+            } else {
+                if (val > currentPw[i]) assist.push(">");
+                else assist.push("<");
+            }
+        }
+        return assist.join('');
+    }
+
+    // 处理一次猜测
+    function handleGuess() {
+        if (!gameActive) {
+            addLog(`⛔ 游戏已经结束，请使用「重开」或「应用设置」开始新对局。`);
+            return;
+        }
+        let guessArr = [];
+        for (let i = 0; i < 4; i++) {
+            let raw = dInputs[i].value.trim();
+            if (raw === "") {
+                addLog(`❌ 第${i+1}个数字为空，请完整输入0~${maxRange}之间的整数`);
+                return;
+            }
+            let num = Number(raw);
+            if (isNaN(num) || !Number.isInteger(num) || num < 0 || num > maxRange) {
+                addLog(`❌ 输入无效: 每个数字必须是0~${maxRange}的整数`);
+                return;
+            }
+            guessArr.push(num);
+        }
+        // 增加尝试次数
+        attemptCount++;
+        updateUI();
+
+        const evaluation = evaluateGuess(guessArr);
+        const resultCode = evaluation.resultStr;
+        let assistantMsg = "";
+        if (assistantEnabled && !evaluation.correct) {
+            assistantMsg = `  [辅助] ${getAssistantString(guessArr)}`;
+        }
+
+        // 显示本次猜测结果
+        const guessShow = guessArr.join('-');
+        addLog(`🔎 猜测 ${attemptCount}: ${guessShow}  → 反馈: ${resultCode}${assistantMsg}`, true);
+        
+        if (evaluation.correct) {
+            winGame();
+        } else {
+            // 简单输出解释文本（不覆盖正常逻辑）
+            if (!assistantEnabled) {
+                // 常规不做额外动作
+            }
+        }
+        // 清空输入框（便于下一次输入）
+        dInputs.forEach(inp => inp.value = '');
+    }
+
+    // 手动清空输入
+    function clearInputs() {
+        dInputs.forEach(inp => inp.value = '');
+        addLog(`🧹 输入已清空，重新输入新组合。`);
+    }
+
+    // ---------- 开发者代码功能封装 ----------
+    function handleDevCode(code) {
+        switch(code) {
+            case 101: // 显示密码
+                addLog(`📡 [代码101] 当前密码: ${currentPw.join('-')}`);
+                break;
+            case 102: // 强制结束
+                if (gameActive) forceEndGame();
+                else addLog(`游戏已结束，无法重复强制结束。`);
+                break;
+            case 103: { // 重开游戏询问是否继承设置
+                const inherit = confirm("是否继承本局游戏的设置？\n(确定=继承，取消=使用当前面板设置并重置)");
+                if (inherit) {
+                    // 继承上一次的设置(上一次指的是游戏最后一次使用的diff和range, 由lastSettings存储)
+                    difficulty = lastSettings.diff;
+                    maxRange = lastSettings.range;
+                    difficultySelect.value = difficulty;
+                    maxRangeInput.value = maxRange;
+                    resetGame(true);
+                    addLog(`🔁 重开成功，继承上一局设置 (难度${difficulty===1?'简单':'困难'}, 范围0~${maxRange})`);
+                } else {
+                    // 不继承，以当前select和输入框数值重置
+                    let newDiff = parseInt(difficultySelect.value);
+                    let newRange = parseInt(maxRangeInput.value);
+                    if (newRange<3) newRange=3; if(newRange>99) newRange=99;
+                    difficulty = newDiff;
+                    maxRange = newRange;
+                    lastSettings = { diff: difficulty, range: maxRange };
+                    resetGame(true);
+                    addLog(`🔄 重开成功，使用当前设置 (难度${difficulty===1?'简单':'困难'},范围0~${maxRange})`);
+                }
+                updateUI();
+                break;
+            }
+            case 104: // 清除记录并重开（完全重置所有记录，且保持当前界面设置但不继承？原意清除所有过程数据）
+                // 不继承任何，但保留当前设置UI值，重置游戏过程
+                {
+                    let curDiff = parseInt(difficultySelect.value);
+                    let curRange = parseInt(maxRangeInput.value);
+                    if (isNaN(curRange)) curRange = 20;
+                    if(curRange<3) curRange=3; if(curRange>99) curRange=99;
+                    difficulty = curDiff;
+                    maxRange = curRange;
+                    lastSettings = { diff: difficulty, range: maxRange };
+                    assistantEnabled = false;   // 清除记录辅助器默认关闭符合直觉
+                    updateUI();
+                    resetGame(true);
+                    addLog(`🧽 已清除所有记录并重开，辅助判断器已关闭。`);
+                }
+                break;
+            case 105: // 启用辅助判断器
+                assistantEnabled = true;
+                updateUI();
+                addLog(`✨ 辅助判断器已启用（反馈中会增加「=、<、>」辅助信息）`);
+                break;
+            case 106: // 停用辅助判断器
+                assistantEnabled = false;
+                updateUI();
+                addLog(`🚫 辅助判断器已停用`);
+                break;
+            case 107: // 输出当前难度范围及辅助状态
+                addLog(`ℹ️ 当前设置: 难度-${difficulty===1?'简单':'困难'} | 有效范围0~${maxRange} | 辅助器:${assistantEnabled?"开启":"关闭"} | 尝试次数:${attemptCount} | 游戏活跃:${gameActive?"是":"否"}`);
+                break;
+            case 108: // 直接重开且继承上一局游戏设置（调用继承）
+                inheritAndRestart();
+                break;
+            default: break;
+        }
+    }
+
+    // 绑定所有代码按钮
+    document.querySelectorAll('.btn-code').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const codeVal = parseInt(btn.getAttribute('data-code'));
+            handleDevCode(codeVal);
+        });
+    });
+
+    // 监听模态框按钮
+    modalRestartBtn.addEventListener('click', () => {
+        hideModal();
+        // 新的一局: 使用当前全局设置重置游戏
+        resetGame(true);
+        updateUI();
+        addLog(`✨ 从结算界面重开新对局。`);
+    });
+    modalCloseBtn.addEventListener('click', hideModal);
+
+    // 应用设置
+    applyBtn.addEventListener('click', () => {
+        applySettingsAndReset();
+        updateUI();
+    });
+
+    submitBtn.addEventListener('click', handleGuess);
+    clearBtn.addEventListener('click', clearInputs);
+
+    // 初始化默认游戏
+    (function init() {
+        difficulty = 1;
+        maxRange = 20;
+        lastSettings = { diff: 1, range: 20 };
+        assistantEnabled = false;
+        difficultySelect.value = "1";
+        maxRangeInput.value = "20";
+        resetGame(true);
+        updateUI();
+        addLog("💡 开发者代码已就绪，点击对应按钮触发特殊效果。");
+    })();
+
+    // 移动端数字键盘优化
+    dInputs.forEach(inp => {
+        inp.addEventListener('focus', (e) => e.target.select());
+        inp.addEventListener('keypress', (e) => { if(e.key === 'Enter') submitBtn.click(); });
+    });
+</script>
+</body>
+</html>
